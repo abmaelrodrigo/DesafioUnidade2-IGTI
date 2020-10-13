@@ -4,7 +4,7 @@ import { promises as fs } from 'fs';
 
 const { readFile, writeFile } = fs;
 
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     let grade = req.body;
     const data = JSON.parse(await readFile('gradesTest.json'));
@@ -16,21 +16,21 @@ router.post('/', async (req, res) => {
 
     res.send(grade);
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    next(err);
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next) => {
   try {
     const data = JSON.parse(await readFile('gradesTest.json'));
     delete data.nextId;
     res.send(data);
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    next(err);
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
   try {
     const data = JSON.parse(await readFile('gradesTest.json'));
     const grade = data.grades.find(
@@ -38,11 +38,11 @@ router.get('/:id', async (req, res) => {
     );
     res.send(grade);
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    next(err);
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const data = JSON.parse(await readFile('gradesTest.json'));
     data.grades = data.grades.filter(
@@ -52,11 +52,11 @@ router.delete('/:id', async (req, res) => {
     res.send('Usuário deletado com sucesso!');
     res.end();
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    next(err);
   }
 });
 
-router.put('/', async (req, res) => {
+router.put('/', async (req, res, next) => {
   try {
     let grade = req.body;
 
@@ -70,18 +70,16 @@ router.put('/', async (req, res) => {
     await writeFile('gradesTest.json', JSON.stringify(data, null, 2));
     res.send(grade);
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    next(err);
   }
 });
 
-router.post('/mediaStudent', async (req, res) => {
+router.post('/mediaStudent', async (req, res, next) => {
   try {
     let grade = req.body;
     let sumGrades = 0;
 
     const data = JSON.parse(await readFile('gradesTest.json'));
-    //console.log(grade.subject);
-    //res.send(grade.subject);
 
     const index = data.grades.find((student) => {
       if (student.student === grade.student) {
@@ -90,14 +88,16 @@ router.post('/mediaStudent', async (req, res) => {
         }
       }
     });
-    res.send(`Soma das notas da disciplina ${grade.subject}: ${sumGrades}`);
+    res.send(
+      `Soma das notas da disciplina ${grade.subject} do(a) aluno(a) ${grade.student}: ${sumGrades}`
+    );
     res.end();
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    next(err);
   }
 });
 
-router.post('/mediaSubject', async (req, res) => {
+router.post('/mediaSubject', async (req, res, next) => {
   try {
     let grade = req.body;
     let sumValues = 0;
@@ -120,11 +120,11 @@ router.post('/mediaSubject', async (req, res) => {
     );
     res.end();
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    next(err);
   }
 });
 
-router.post('/bestGrades', async (req, res) => {
+router.post('/bestGrades', async (req, res, next) => {
   try {
     let grade = req.body;
     let gradesArray = [];
@@ -137,9 +137,6 @@ router.post('/bestGrades', async (req, res) => {
       if (subject.subject === grade.subject) {
         if (subject.type === grade.type) {
           gradesArray.push(parseInt(subject.value));
-
-          //countRegisters++;
-          //sumValues = subject.value + sumValues;
         }
       }
     });
@@ -155,8 +152,13 @@ router.post('/bestGrades', async (req, res) => {
     );
     res.end();
   } catch (err) {
-    res.status(400).send({ error: err.message });
+    next(err);
   }
+});
+
+router.use((err, req, res, next) => {
+  console.log(err);
+  res.status(400).send({ error: err.message });
 });
 
 export default router;
