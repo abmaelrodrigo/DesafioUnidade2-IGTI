@@ -15,6 +15,8 @@ router.post('/', async (req, res, next) => {
     await writeFile('gradesTest.json', JSON.stringify(data, null, 2));
 
     res.send(grade);
+
+    logger.info(`POST /grades - ${JSON.stringify(grade)}`);
   } catch (err) {
     next(err);
   }
@@ -25,6 +27,7 @@ router.get('/', async (req, res, next) => {
     const data = JSON.parse(await readFile('gradesTest.json'));
     delete data.nextId;
     res.send(data);
+    logger.info('GET /grades');
   } catch (err) {
     next(err);
   }
@@ -37,6 +40,7 @@ router.get('/:id', async (req, res, next) => {
       (grade) => grade.id === parseInt(req.params.id)
     );
     res.send(grade);
+    logger.info('GET /grades/:id');
   } catch (err) {
     next(err);
   }
@@ -51,6 +55,7 @@ router.delete('/:id', async (req, res, next) => {
     await writeFile('gradesTest.json', JSON.stringify(data, null, 2));
     res.send('Usuário deletado com sucesso!');
     res.end();
+    logger.info(`GET /grades/:id - ${req.params.id}`);
   } catch (err) {
     next(err);
   }
@@ -69,6 +74,7 @@ router.put('/', async (req, res, next) => {
 
     await writeFile('gradesTest.json', JSON.stringify(data, null, 2));
     res.send(grade);
+    logger.info(`PUT /grades - ${JSON.stringify(grade)}`);
   } catch (err) {
     next(err);
   }
@@ -91,6 +97,7 @@ router.post('/mediaStudent', async (req, res, next) => {
     res.send(
       `Soma das notas da disciplina ${grade.subject} do(a) aluno(a) ${grade.student}: ${sumGrades}`
     );
+    logger.info(`POST /grades/mediaStudent - ${sumGrades}`);
     res.end();
   } catch (err) {
     next(err);
@@ -118,6 +125,8 @@ router.post('/mediaSubject', async (req, res, next) => {
         sumValues / countRegisters
       }`
     );
+    logger.info(`POST /grades/mediaSubject - ${sumValues / countRegisters}`);
+
     res.end();
   } catch (err) {
     next(err);
@@ -150,6 +159,8 @@ router.post('/bestGrades', async (req, res, next) => {
     res.send(
       `Melhores notas da disciplina ${grade.subject}, tipo ${grade.type}: ${sortedArray}`
     );
+    logger.info(`POST /grades/bestGrades - ${sortedArray}`);
+
     res.end();
   } catch (err) {
     next(err);
@@ -157,7 +168,7 @@ router.post('/bestGrades', async (req, res, next) => {
 });
 
 router.use((err, req, res, next) => {
-  console.log(err);
+  logger.error(`${req.method} ${req.baseUrl} - ${err.message}`);
   res.status(400).send({ error: err.message });
 });
 
